@@ -71,9 +71,13 @@ export default function Home() {
             display: "grid",
             gridTemplateColumns: "1fr",
             gap: "1.6rem",
+            marginTop: "3.2rem",
 
             "@media (min-width: 768px)": {
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns:
+                rafflesToShow?.length < 3
+                  ? `repeat(${rafflesToShow.length}, 1fr)`
+                  : "1fr 1fr 1fr",
             },
           }}
         >
@@ -82,15 +86,22 @@ export default function Home() {
               if (raffle.prizes.length === 0) return null
 
               const prize = raffle.prizes[0]
-              const imageUrl = raffle.metadata.overviewImageUri
-                ? raffle.metadata.overviewImageUri
-                : prize.meta.imageUri
+              const imageUrl = prize.meta.imageUri
 
               const MAX_TITLE_LENGTH = 20
 
               return (
                 <Link href={raffle.publicKey.toString()}>
-                  <a title="Raffle">
+                  <a
+                    sx={{
+                      transform: "scale(1)",
+                      backgroundColor: "background",
+                      ":hover": {
+                        transform: "scale(1.01)",
+                      },
+                    }}
+                    title="Raffle"
+                  >
                     <Flex
                       sx={{
                         flexDirection: "column",
@@ -99,6 +110,7 @@ export default function Home() {
                         borderRadius: ".4rem",
                         padding: "1.6rem",
                         alignItems: "center",
+                        gap: "1.6rem",
                       }}
                     >
                       <span>
@@ -106,7 +118,12 @@ export default function Home() {
                         {raffle.prizes.length > 1 && "s"}
                       </span>
                       {new Date() > raffle.endTimestamp && <span>Ended</span>}
-                      <img src={imageUrl} />
+                      <img
+                        sx={{
+                          maxWidth: "33%",
+                        }}
+                        src={imageUrl}
+                      />
                       <Heading variant="heading3">
                         {raffle.metadata.name.length > MAX_TITLE_LENGTH ? (
                           <>
@@ -117,8 +134,9 @@ export default function Home() {
                             ...
                           </>
                         ) : (
-                          raffle.metadata.name
+                          raffle.publicKey.toString().slice(0, 9)
                         )}
+                        ...
                       </Heading>
                       <hr />
                       <Flex

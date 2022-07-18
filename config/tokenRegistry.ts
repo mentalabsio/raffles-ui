@@ -77,6 +77,15 @@ const tokenRegistry = {
     logoURI: "/resources/samo-logo.png",
     tags: [],
   },
+  Co6YcwgGddkRdruFLRCjoHtq6DZsZBR4pMMtSiQGotRL: {
+    chainId: 101,
+    address: "Co6YcwgGddkRdruFLRCjoHtq6DZsZBR4pMMtSiQGotRL",
+    symbol: "Treat",
+    name: "Treat",
+    decimals: 9,
+    logoURI: "https://staking.xthstreet.com/terries.jpeg",
+    tags: [],
+  },
 }
 
 export const tokenInfoMap = new Map(Object.entries(tokenRegistry))
