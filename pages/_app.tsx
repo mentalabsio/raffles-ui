@@ -10,6 +10,8 @@ import "@solana/wallet-adapter-react-ui/styles.css"
 import withGA from "next-ga"
 
 import defaultTheme from "../styles/theme"
+import ProgramApisProvider from "providers/ProgramApisProvider"
+import RafflesStoreProvider from "providers/RafflesStoreProvider"
 
 const WalletProvider = dynamic(
   () => import("@/components/WalletProvider/WalletProvider"),
@@ -29,7 +31,11 @@ function App(props: AppProps) {
       </Head>
 
       <WalletProvider>
-        <Component {...pageProps} />
+        <ProgramApisProvider>
+          <RafflesStoreProvider>
+            <Component {...pageProps} />
+          </RafflesStoreProvider>
+        </ProgramApisProvider>
       </WalletProvider>
     </ThemeProvider>
   )

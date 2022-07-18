@@ -4,8 +4,41 @@ import Head from "next/head"
 import { Heading, Text } from "@theme-ui/components"
 
 import Header from "@/components/Header/Header"
+import { useWallet } from "@solana/wallet-adapter-react"
+import { useRafflesStore } from "@/hooks/useRafflesStore"
+import { useEffect, useMemo, useState } from "react"
+import { Raffle } from "lib/types"
 
 export default function Home() {
+  const { publicKey } = useWallet()
+  const { raffles, fetchAllRaffles, fetching } = useRafflesStore()
+  const [showOwnRafflesOnly, setShowOwnRafflesOnly] = useState(false)
+  const [hideEndedRaffles, setHideEndedRaffles] = useState(false)
+
+  useEffect(() => {
+    fetchAllRaffles()
+  }, [fetchAllRaffles])
+
+  const filterMap = useMemo(
+    () => ({
+      own: (raffle: Raffle) => raffle.entrants.has(publicKey?.toString() || ""),
+      ongoing: (raffle: Raffle) => new Date() < raffle.endTimestamp,
+    }),
+    [publicKey]
+  )
+
+  const rafflesToShow = useMemo(() => {
+    // @ts-ignore
+    let toShow = [...raffles.values()].sort(
+      (raffle1, raffle2) =>
+        raffle2.endTimestamp.getTime() - raffle1.endTimestamp.getTime()
+    )
+    if (showOwnRafflesOnly) toShow = toShow.filter(filterMap.own)
+    if (hideEndedRaffles) toShow = toShow.filter(filterMap.ongoing)
+    return toShow
+  }, [raffles, filterMap, showOwnRafflesOnly, hideEndedRaffles])
+
+  console.log(rafflesToShow)
   return (
     <>
       <Head>
