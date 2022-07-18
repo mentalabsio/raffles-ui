@@ -11,11 +11,13 @@ import { Raffle } from "lib/types"
 import Link from "next/link"
 import { getDisplayAmount } from "lib/accounts"
 import Countdown from "react-countdown"
-import { TicketIcon } from "@/components/icons"
+import { ClockIcon, TicketIcon } from "@/components/icons"
+import { PurchaseTickets } from "@/components/PurchaseTicket"
 
 export default function Home() {
   const { publicKey } = useWallet()
-  const { raffles, fetchAllRaffles, fetching } = useRafflesStore()
+  const { raffles, fetchAllRaffles, fetching, updateRaffleById } =
+    useRafflesStore()
   const [showOwnRafflesOnly, setShowOwnRafflesOnly] = useState(false)
   const [hideEndedRaffles, setHideEndedRaffles] = useState(false)
 
@@ -62,7 +64,7 @@ export default function Home() {
         }}
       >
         <Heading mb=".8rem" variant="heading1">
-          Raffles template
+          Raffles
         </Heading>
         <Text>Our raffles</Text>
 
@@ -90,96 +92,109 @@ export default function Home() {
 
               const MAX_TITLE_LENGTH = 20
 
+              const ended = new Date() > raffle.endTimestamp
+
               return (
-                <Link href={raffle.publicKey.toString()}>
-                  <a
-                    sx={{
-                      transform: "scale(1)",
-                      backgroundColor: "background",
-                      ":hover": {
-                        transform: "scale(1.01)",
-                      },
-                    }}
-                    title="Raffle"
-                  >
-                    <Flex
+                <>
+                  <Link href={raffle.publicKey.toString()}>
+                    <a
                       sx={{
-                        flexDirection: "column",
-                        border: "1px solid",
-                        borderColor: "primary",
-                        borderRadius: ".4rem",
-                        padding: "1.6rem",
-                        alignItems: "center",
-                        gap: "1.6rem",
+                        transform: "scale(1)",
+                        backgroundColor: "background",
+                        ":hover": {
+                          transform: "scale(1.01)",
+                        },
                       }}
+                      title="Raffle"
                     >
-                      <span>
-                        {raffle.prizes.length} prize
-                        {raffle.prizes.length > 1 && "s"}
-                      </span>
-                      {new Date() > raffle.endTimestamp && <span>Ended</span>}
-                      <img
-                        sx={{
-                          maxWidth: "33%",
-                        }}
-                        src={imageUrl}
-                      />
-                      <Heading variant="heading3">
-                        {raffle.metadata.name.length > MAX_TITLE_LENGTH ? (
-                          <>
-                            {raffle.metadata.name.slice(
-                              0,
-                              MAX_TITLE_LENGTH - 4
-                            )}{" "}
-                            ...
-                          </>
-                        ) : (
-                          raffle.publicKey.toString().slice(0, 9)
-                        )}
-                        ...
-                      </Heading>
-                      <hr />
                       <Flex
                         sx={{
-                          gap: "3.2rem",
+                          flexDirection: "column",
+                          border: "1px solid",
+                          borderColor: "primary",
+                          borderRadius: ".4rem",
+                          padding: "1.6rem",
+                          alignItems: "center",
+                          gap: "1.6rem",
                         }}
                       >
-                        <Text
+                        <span>
+                          {raffle.prizes.length} prize
+                          {raffle.prizes.length > 1 && "s"}
+                        </span>
+                        {new Date() > raffle.endTimestamp && <span>Ended</span>}
+                        <img
                           sx={{
-                            display: "flex",
-                            gap: ".8rem",
-                            alignItems: "center",
+                            maxWidth: "33%",
+                          }}
+                          src={imageUrl}
+                        />
+                        <Heading variant="heading3">
+                          {raffle.metadata.name.length > MAX_TITLE_LENGTH ? (
+                            <>
+                              {raffle.metadata.name.slice(
+                                0,
+                                MAX_TITLE_LENGTH - 4
+                              )}{" "}
+                              ...
+                            </>
+                          ) : (
+                            raffle.publicKey.toString().slice(0, 9)
+                          )}
+                          ...
+                        </Heading>
+                        <hr />
+                        <Flex
+                          sx={{
+                            gap: "3.2rem",
                           }}
                         >
-                          <TicketIcon />
-                          {raffle.totalTickets} sold
-                        </Text>
-                        <Text
+                          <Text
+                            sx={{
+                              display: "flex",
+                              gap: ".8rem",
+                              alignItems: "center",
+                            }}
+                          >
+                            <TicketIcon />
+                            {raffle.totalTickets} sold
+                          </Text>
+                          <Text
+                            sx={{
+                              display: "flex",
+                              gap: ".8rem",
+                              alignItems: "center",
+                            }}
+                          >
+                            <ClockIcon />
+
+                            <Countdown date={raffle.endTimestamp} />
+                          </Text>
+                        </Flex>
+                        <Flex
                           sx={{
-                            display: "flex",
                             gap: ".8rem",
-                            alignItems: "center",
                           }}
                         >
-                          Ending in
-                          <Countdown date={raffle.endTimestamp} />
-                        </Text>
+                          <span>Ticket price</span>
+                          {getDisplayAmount(
+                            raffle.proceeds.ticketPrice,
+                            raffle.proceeds.mint
+                          )}{" "}
+                          {raffle.proceeds.mint.symbol}
+                        </Flex>
                       </Flex>
-                      <Flex
-                        sx={{
-                          gap: ".8rem",
-                        }}
-                      >
-                        <span>Ticket price</span>
-                        {getDisplayAmount(
-                          raffle.proceeds.ticketPrice,
-                          raffle.proceeds.mint
-                        )}{" "}
-                        {raffle.proceeds.mint.symbol}
-                      </Flex>
-                    </Flex>
-                  </a>
-                </Link>
+                    </a>
+                  </Link>
+                  {!ended && (
+                    <PurchaseTickets
+                      raffle={raffle}
+                      updateRaffle={() =>
+                        updateRaffleById(raffle.publicKey.toString())
+                      }
+                    />
+                  )}
+                </>
               )
             })}
         </Flex>
