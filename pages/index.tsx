@@ -1,7 +1,7 @@
 /** @jsxImportSource theme-ui */
 import Head from "next/head"
 
-import { Flex, Heading, Text } from "@theme-ui/components"
+import { Button, Flex, Heading, Text } from "@theme-ui/components"
 
 import Header from "@/components/Header/Header"
 import { useWallet } from "@solana/wallet-adapter-react"
@@ -69,8 +69,12 @@ export default function Home() {
         <Flex
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "1fr",
             gap: "1.6rem",
+
+            "@media (min-width: 768px)": {
+              gridTemplateColumns: "repeat(3, 1fr)",
+            },
           }}
         >
           {rafflesToShow &&
@@ -86,72 +90,77 @@ export default function Home() {
 
               return (
                 <Link href={raffle.publicKey.toString()}>
-                  <Flex
-                    sx={{
-                      flexDirection: "column",
-                      border: "1px solid",
-                      borderColor: "primary",
-                      borderRadius: ".4rem",
-                      padding: "1.6rem",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span>
-                      {raffle.prizes.length} prize
-                      {raffle.prizes.length > 1 && "s"}
-                    </span>
-                    {new Date() > raffle.endTimestamp && <span>Ended</span>}
-                    <img src={imageUrl} />
-                    <Heading variant="heading3">
-                      {raffle.metadata.name.length > MAX_TITLE_LENGTH ? (
-                        <>
-                          {raffle.metadata.name.slice(0, MAX_TITLE_LENGTH - 4)}{" "}
-                          ...
-                        </>
-                      ) : (
-                        raffle.metadata.name
-                      )}
-                    </Heading>
-                    <hr />
+                  <a title="Raffle">
                     <Flex
                       sx={{
-                        gap: "3.2rem",
+                        flexDirection: "column",
+                        border: "1px solid",
+                        borderColor: "primary",
+                        borderRadius: ".4rem",
+                        padding: "1.6rem",
+                        alignItems: "center",
                       }}
                     >
-                      <Text
+                      <span>
+                        {raffle.prizes.length} prize
+                        {raffle.prizes.length > 1 && "s"}
+                      </span>
+                      {new Date() > raffle.endTimestamp && <span>Ended</span>}
+                      <img src={imageUrl} />
+                      <Heading variant="heading3">
+                        {raffle.metadata.name.length > MAX_TITLE_LENGTH ? (
+                          <>
+                            {raffle.metadata.name.slice(
+                              0,
+                              MAX_TITLE_LENGTH - 4
+                            )}{" "}
+                            ...
+                          </>
+                        ) : (
+                          raffle.metadata.name
+                        )}
+                      </Heading>
+                      <hr />
+                      <Flex
                         sx={{
-                          display: "flex",
-                          gap: ".8rem",
-                          alignItems: "center",
+                          gap: "3.2rem",
                         }}
                       >
-                        <TicketIcon />
-                        {raffle.totalTickets} sold
-                      </Text>
-                      <Text
+                        <Text
+                          sx={{
+                            display: "flex",
+                            gap: ".8rem",
+                            alignItems: "center",
+                          }}
+                        >
+                          <TicketIcon />
+                          {raffle.totalTickets} sold
+                        </Text>
+                        <Text
+                          sx={{
+                            display: "flex",
+                            gap: ".8rem",
+                            alignItems: "center",
+                          }}
+                        >
+                          Ending in
+                          <Countdown date={raffle.endTimestamp} />
+                        </Text>
+                      </Flex>
+                      <Flex
                         sx={{
-                          display: "flex",
                           gap: ".8rem",
-                          alignItems: "center",
                         }}
                       >
-                        Ending in
-                        <Countdown date={raffle.endTimestamp} />
-                      </Text>
+                        <span>Ticket price</span>
+                        {getDisplayAmount(
+                          raffle.proceeds.ticketPrice,
+                          raffle.proceeds.mint
+                        )}{" "}
+                        {raffle.proceeds.mint.symbol}
+                      </Flex>
                     </Flex>
-                    <Flex
-                      sx={{
-                        gap: ".8rem",
-                      }}
-                    >
-                      <span>Ticket price</span>
-                      {getDisplayAmount(
-                        raffle.proceeds.ticketPrice,
-                        raffle.proceeds.mint
-                      )}{" "}
-                      {raffle.proceeds.mint.symbol}
-                    </Flex>
-                  </Flex>
+                  </a>
                 </Link>
               )
             })}

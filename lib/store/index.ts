@@ -1,4 +1,4 @@
-import { BorshAccountsCoder, ProgramAccount } from "@project-serum/anchor"
+import { BorshAccountsCoder, ProgramAccount, web3 } from "@project-serum/anchor"
 import { parseTokenAccount } from "@project-serum/common"
 import { u64, AccountInfo as TokenAccountInfo } from "@solana/spl-token"
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js"
@@ -214,7 +214,18 @@ export const getRaffleProgramAccounts = async (
   entrantsDataProgramAccounts: ProgramAccount<EntrantsData>[]
 }> => {
   const result = await draffleClient.provider.connection.getProgramAccounts(
-    draffleClient.programId
+    draffleClient.programId,
+    {
+      filters: [
+        {
+          memcmp: {
+            offset: 8, // number of bytes
+            /** Raffle creator address */
+            bytes: "7x4JZgW2oeAcra18oMC7Tudu9h6D5cYMJnjy8AbubBVW", // base58 encoded string
+          },
+        },
+      ],
+    }
   )
 
   const raffleDiscriminator = BorshAccountsCoder.accountDiscriminator("Raffle")
