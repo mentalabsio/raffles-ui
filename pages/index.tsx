@@ -1,13 +1,17 @@
 /** @jsxImportSource theme-ui */
 import Head from "next/head"
 
-import { Heading, Text } from "@theme-ui/components"
+import { Flex, Heading, Text } from "@theme-ui/components"
 
 import Header from "@/components/Header/Header"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useRafflesStore } from "@/hooks/useRafflesStore"
 import { useEffect, useMemo, useState } from "react"
 import { Raffle } from "lib/types"
+import Link from "next/link"
+import { getDisplayAmount } from "lib/accounts"
+import Countdown from "react-countdown"
+import { TicketIcon } from "@/components/icons"
 
 export default function Home() {
   const { publicKey } = useWallet()
@@ -29,7 +33,7 @@ export default function Home() {
 
   const rafflesToShow = useMemo(() => {
     // @ts-ignore
-    let toShow = [...raffles.values()].sort(
+    let toShow: Raffle[] = [...raffles.values()].sort(
       (raffle1, raffle2) =>
         raffle2.endTimestamp.getTime() - raffle1.endTimestamp.getTime()
     )
@@ -61,6 +65,97 @@ export default function Home() {
           Raffles template
         </Heading>
         <Text>Our raffles</Text>
+
+        <Flex
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "1.6rem",
+          }}
+        >
+          {rafflesToShow &&
+            rafflesToShow.map((raffle) => {
+              if (raffle.prizes.length === 0) return null
+
+              const prize = raffle.prizes[0]
+              const imageUrl = raffle.metadata.overviewImageUri
+                ? raffle.metadata.overviewImageUri
+                : prize.meta.imageUri
+
+              const MAX_TITLE_LENGTH = 20
+
+              return (
+                <Link href={raffle.publicKey.toString()}>
+                  <Flex
+                    sx={{
+                      flexDirection: "column",
+                      border: "1px solid",
+                      borderColor: "primary",
+                      borderRadius: ".4rem",
+                      padding: "1.6rem",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span>
+                      {raffle.prizes.length} prize
+                      {raffle.prizes.length > 1 && "s"}
+                    </span>
+                    {new Date() > raffle.endTimestamp && <span>Ended</span>}
+                    <img src={imageUrl} />
+                    <Heading variant="heading3">
+                      {raffle.metadata.name.length > MAX_TITLE_LENGTH ? (
+                        <>
+                          {raffle.metadata.name.slice(0, MAX_TITLE_LENGTH - 4)}{" "}
+                          ...
+                        </>
+                      ) : (
+                        raffle.metadata.name
+                      )}
+                    </Heading>
+                    <hr />
+                    <Flex
+                      sx={{
+                        gap: "3.2rem",
+                      }}
+                    >
+                      <Text
+                        sx={{
+                          display: "flex",
+                          gap: ".8rem",
+                          alignItems: "center",
+                        }}
+                      >
+                        <TicketIcon />
+                        {raffle.totalTickets} sold
+                      </Text>
+                      <Text
+                        sx={{
+                          display: "flex",
+                          gap: ".8rem",
+                          alignItems: "center",
+                        }}
+                      >
+                        Ending in
+                        <Countdown date={raffle.endTimestamp} />
+                      </Text>
+                    </Flex>
+                    <Flex
+                      sx={{
+                        gap: ".8rem",
+                      }}
+                    >
+                      <span>Ticket price</span>
+                      {getDisplayAmount(
+                        raffle.proceeds.ticketPrice,
+                        raffle.proceeds.mint
+                      )}{" "}
+                      {raffle.proceeds.mint.symbol}
+                    </Flex>
+                  </Flex>
+                </Link>
+              )
+            })}
+        </Flex>
       </main>
 
       <footer

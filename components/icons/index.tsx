@@ -347,6 +347,32 @@ function ProfileLogo() {
   )
 }
 
+export function TicketIcon() {
+  return (
+    <svg
+      sx={{
+        stroke: "text",
+        verticalAlign: "middle",
+      }}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.5"
+      className="icon icon-tabler icon-tabler-ticket"
+      viewBox="0 0 24 24"
+    >
+      <path stroke="none" d="M0 0h24v24H0z"></path>
+      <path d="M15 5L15 7"></path>
+      <path d="M15 11L15 13"></path>
+      <path d="M15 17L15 19"></path>
+      <path d="M5 5h14a2 2 0 012 2v3a2 2 0 000 4v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3a2 2 0 000-4V7a2 2 0 012-2"></path>
+    </svg>
+  )
+}
+
 export {
   SolanaLogoMark,
   PlusSign,
