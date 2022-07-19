@@ -11,7 +11,7 @@ import { Raffle } from "lib/types"
 import Link from "next/link"
 import { getDisplayAmount } from "lib/accounts"
 import Countdown from "react-countdown"
-import { ClockIcon, TicketIcon } from "@/components/icons"
+import { ClockIcon, CoinIcon, TicketIcon } from "@/components/icons"
 import { PurchaseTickets } from "@/components/PurchaseTicket"
 
 export default function Home() {
@@ -125,7 +125,7 @@ export default function Home() {
                         {new Date() > raffle.endTimestamp && <span>Ended</span>}
                         <img
                           sx={{
-                            maxWidth: "33%",
+                            maxWidth: "8rem",
                           }}
                           src={imageUrl}
                         />
@@ -143,7 +143,17 @@ export default function Home() {
                           )}
                           ...
                         </Heading>
-                        <hr />
+                        <Text
+                          sx={{
+                            display: "flex",
+                            gap: ".8rem",
+                            alignItems: "center",
+                          }}
+                        >
+                          <ClockIcon />
+
+                          <Countdown date={raffle.endTimestamp} />
+                        </Text>
                         <Flex
                           sx={{
                             gap: "3.2rem",
@@ -159,29 +169,20 @@ export default function Home() {
                             <TicketIcon />
                             {raffle.totalTickets} sold
                           </Text>
-                          <Text
+
+                          <Flex
                             sx={{
-                              display: "flex",
                               gap: ".8rem",
                               alignItems: "center",
                             }}
                           >
-                            <ClockIcon />
-
-                            <Countdown date={raffle.endTimestamp} />
-                          </Text>
-                        </Flex>
-                        <Flex
-                          sx={{
-                            gap: ".8rem",
-                          }}
-                        >
-                          <span>Ticket price</span>
-                          {getDisplayAmount(
-                            raffle.proceeds.ticketPrice,
-                            raffle.proceeds.mint
-                          )}{" "}
-                          {raffle.proceeds.mint.symbol}
+                            <CoinIcon />
+                            {getDisplayAmount(
+                              raffle.proceeds.ticketPrice,
+                              raffle.proceeds.mint
+                            )}{" "}
+                            ${raffle.proceeds.mint.symbol} ea
+                          </Flex>
                         </Flex>
                       </Flex>
                     </a>

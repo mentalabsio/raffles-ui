@@ -26,9 +26,9 @@ import { tokenInfoMap, wrappedSOL } from "../config/tokenRegistry"
 import { useProgramApis } from "../hooks/useProgramApis"
 import { DispenserRegistryRaw } from "../providers/ProgramApisProvider"
 import { PublicKey } from "@solana/web3.js"
-import { Button, Input, Select, Text } from "@theme-ui/components"
+import { Button, Flex, Input, Select, Text } from "@theme-ui/components"
 
-const MAX_TICKET_AMOUNT = 1000
+const MAX_TICKET_AMOUNT = 3000
 
 const isLamportsEnough = (lamports: number | undefined) =>
   (lamports ?? 0) >= BUY_TICKETS_TX_FEE_LAMPORTS
@@ -67,8 +67,10 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
     }),
     [raffle]
   )
+
   const [paymentOption, setPaymentOption] =
     useState<PaymentOption>(nativePaymentOption)
+
   const [buyerATABalance, setBuyerATABalance] = useState<AccountBalance>({
     mint: raffle.proceeds.mint.publicKey,
     amount: undefined,
@@ -287,25 +289,56 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
   ) => setPaymentOption(paymentOptions.get(event.target.value as string)!)
 
   return (
-    <div>
-      <Text variant="h3">Purchase Tickets</Text>
-      <div>
-        <Text variant="overline">Amount</Text>
-      </div>
-      <div>
-        <div>
+    <Flex
+      sx={{
+        flexDirection: "column",
+        alignItems: "center",
+        gap: ".8rem",
+      }}
+    >
+      <Flex
+        sx={{
+          alignItems: "center",
+          gap: ".8rem",
+        }}
+      >
+        <Flex
+          sx={{
+            alignItems: "center",
+            border: "1px solid",
+            borderColor: "primary",
+            padding: ".4rem 1.6rem",
+            borderRadius: ".4rem",
+            gap: ".8rem",
+          }}
+        >
           <Button
+            sx={{
+              borderRadius: "2.4rem",
+              border: "1px solid",
+              borderColor: "primary",
+              padding: "0 .8rem",
+              alignItems: "center",
+              width: "2.4rem",
+              height: "2.4rem",
+              justifyContent: "center",
+              fontWeight: "bold",
+              fontSize: "1.8rem",
+              paddingBottom: ".2rem",
+            }}
+            variant="resetted"
             onClick={() =>
               setTicketAmount((currentAmount) => Math.max(currentAmount - 1, 1))
             }
             disabled={ticketAmount <= 1}
           >
-            {/* <IndeterminateCheckBoxRounded style={{ fontSize: 30 }} /> */}
+            -
           </Button>
-        </div>
-        <div>
           <Input
-            variant="outlined"
+            sx={{
+              border: "none",
+              maxWidth: "8rem",
+            }}
             value={ticketAmount}
             onChange={(event) => {
               const newValue = event.target.value
@@ -323,20 +356,19 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
               setTicketAmount(numericValue)
             }}
           />
-          <span
-            onClick={() => {
-              let maxTickets = Math.min(
-                MAX_TICKET_AMOUNT - raffle.totalTickets,
-                maxTicketsToBuyable.toNumber()
-              )
-              setTicketAmount(maxTickets)
-            }}
-          >
-            max
-          </span>
-        </div>
-        <div>
           <Button
+            sx={{
+              borderRadius: "2.4rem",
+              border: "1px solid",
+              borderColor: "primary",
+              padding: "0 .8rem",
+              alignItems: "center",
+              width: "2.4rem",
+              height: "2.4rem",
+              justifyContent: "center",
+              fontWeight: "bold",
+              fontSize: "1.8rem",
+            }}
             onClick={() =>
               setTicketAmount((currentAmount) => currentAmount + 1)
             }
@@ -347,99 +379,25 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
               ticketAmount + 1 > MAX_TICKET_AMOUNT - raffle.totalTickets
             }
           >
-            {/* <AddBoxRounded style={{ fontSize: 30 }} /> */}
+            +
           </Button>
-        </div>
-      </div>
-      <div>
-        <div>
-          <div>
-            <Text variant="overline">Total Price</Text>
-            <div
-              style={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              <Text variant="h4">
-                {getDisplayAmount(
-                  getBasketPrice(ticketAmount),
-                  paymentOption.mint
-                )}
-              </Text>
-            </div>
-          </div>
-          <div>
-            <Text variant="overline">Currency</Text>
-            {paymentOptions.size === 1 ? (
-              <div>
-                <Text variant="h4">{raffle.proceeds.mint.symbol}</Text>
-                <div>
-                  <img
-                    src={raffle.proceeds.mint.logoUrl}
-                    alt={`Logo for ${raffle.proceeds.mint.name}`}
-                  />
-                </div>
-              </div>
-            ) : (
-              <></>
-              //   <Select
-              //     variant="standard"
-              //     // label="Purchase mint"
-              //     value={paymentOption.mint.publicKey.toString()}
-              //     onChange={onSelectPurchaseMint}
-              //     renderValue={(optionKey) => {
-              //       const option = paymentOptions.get(optionKey as string)!
-              //       return (
-              //         <div>
-              //           <Text variant="h4">{option.mint.symbol}</Text>
-              //           <div>
-              //             <img
-              //               src={option.mint.logoUrl}
-              //               alt={`Logo for ${option.mint.name}`}
-              //             />
-              //           </div>
-              //         </div>
-              //       )
-              //     }}
-              //   >
-              //     <MenuItem value="" disabled>
-              //       Select purchase currency
-              //     </MenuItem>
-              //     {[...paymentOptions.values()].map(({ mint }) => {
-              //       return (
-              //         <MenuItem
-              //           key={mint.publicKey.toString()}
-              //           value={mint.publicKey.toString()}
-              //           classes={{ root }}
-              //         >
-              //           <div>
-              //             <img
-              //               className
-              //               src={mint.logoUrl}
-              //               alt={`Logo for ${mint.name}`}
-              //             />
-              //           </div>
-              //           <Text variant="body1">
-              //             <ShortenedString
-              //               message={mint.name}
-              //               maxCharLength={12}
-              //             />
-              //             {` (${mint.symbol})`}
-              //           </Text>
-              //         </MenuItem>
-              //       )
-              //     })}
-              //   </Select>
-            )}
-          </div>
-        </div>
-      </div>
-      <div>
+          <Button
+            sx={{
+              marginLeft: ".8rem",
+            }}
+            variant="resetted"
+            onClick={() => {
+              let maxTickets = Math.min(
+                MAX_TICKET_AMOUNT - raffle.totalTickets,
+                maxTicketsToBuyable.toNumber()
+              )
+              setTicketAmount(maxTickets)
+            }}
+          >
+            max
+          </Button>
+        </Flex>
         <Button
-          variant="contained"
           onClick={onBuyTickets}
           disabled={
             ticketAmount === 0 ||
@@ -448,28 +406,47 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
             purchaseOngoing
           }
         >
-          <div>
-            {purchaseOngoing ? (
-              <>
-                <div>{/* <CircularProgress size={20} className /> */}</div>
-                <div>Processing...</div>
-              </>
-            ) : (
-              <>Buy ticket {!lamportsEnough && "(Insufficient SOL)"}</>
-            )}
-          </div>
+          {purchaseOngoing ? (
+            "Processing..."
+          ) : (
+            <>Buy {!lamportsEnough && "(Insufficient SOL)"}</>
+          )}
         </Button>
-        <div>
-          Wallet balance:{" "}
+      </Flex>
+      {/* <img
+            src={raffle.proceeds.mint.logoUrl}
+            alt={`Logo for ${raffle.proceeds.mint.name}`}
+          /> */}
+
+      <Flex
+        sx={{
+          alignItems: "center",
+          gap: "1.6rem",
+        }}
+      >
+        <Text variant="small">
+          Cost:
+          {getDisplayAmount(getBasketPrice(ticketAmount), paymentOption.mint)} $
+          {raffle.proceeds.mint.symbol}
+        </Text>
+        <Text
+          variant="small"
+          sx={{
+            alignItems: "center",
+          }}
+        >
+          You have:{" "}
           {buyerTokenBalance
-            ? getDisplayAmount(
-                buyerTokenBalance.amount || new u64(0),
-                paymentOption.mint
-              )
+            ? Number(
+                getDisplayAmount(
+                  buyerTokenBalance.amount || new u64(0),
+                  paymentOption.mint
+                )
+              ).toFixed(2)
             : 0}{" "}
-          {paymentOption.mint.symbol}
-        </div>
-      </div>
-    </div>
+          ${paymentOption.mint.symbol}
+        </Text>
+      </Flex>
+    </Flex>
   )
 }

@@ -397,6 +397,30 @@ export function ClockIcon() {
   )
 }
 
+export function CoinIcon() {
+  return (
+    <svg
+      sx={{
+        stroke: "text",
+        verticalAlign: "middle",
+      }}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.5"
+      className="icon icon-tabler icon-tabler-coin"
+      viewBox="0 0 24 24"
+    >
+      <path stroke="none" d="M0 0h24v24H0z"></path>
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M14.8 9A2 2 0 0013 8h-2a2 2 0 000 4h2a2 2 0 010 4h-2a2 2 0 01-1.8-1M12 6v2m0 8v2"></path>
+    </svg>
+  )
+}
+
 export {
   SolanaLogoMark,
   PlusSign,

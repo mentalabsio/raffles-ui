@@ -37,8 +37,8 @@ const theme: Theme = {
         primaryGradient: getGradient("rgb(145, 255, 200)"),
         heading: "#1E1E24",
         background2: "#1E1E24",
-        backgroundGradient: getGradient("rgb(226, 217, 211)")
-      }
+        backgroundGradient: getGradient("rgb(226, 217, 211)"),
+      },
     },
     error: "#B00020",
     success: "#5cb85c",
@@ -59,7 +59,7 @@ const theme: Theme = {
   buttons: {
     primary: {
       display: "flex",
-      color: "heading",
+      color: "background",
       background: (theme) => theme.colors?.primaryGradient,
       border: "1px solid transparent",
       transition: "all .125s linear",
@@ -140,6 +140,7 @@ const theme: Theme = {
       cursor:
         "pointer" /*make sure you add this, but if you really want it to behave like a span you would leave this out*/,
       transition: "all .125s linear",
+      minWidth: "auto",
 
       "&:not(:disabled):hover": {
         cursor: "pointer",
