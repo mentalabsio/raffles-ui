@@ -3,6 +3,7 @@ import { cloneDeep } from "lodash"
 
 import { Prize } from "../lib/types"
 import { Button } from "@theme-ui/components"
+import { LoadingIcon } from "./icons/LoadingIcon"
 
 interface ClaimButtonProps {
   prize: Prize
@@ -26,8 +27,6 @@ const ClaimButton: FC<ClaimButtonProps> = ({
   return (
     <div>
       <Button
-        variant="outlined"
-        color="secondary"
         onClick={async () => {
           setClaimOngoing((state) => cloneDeep(state.set(prizeIndex, true)))
           await claimPrize(prizeIndex, ticketIndex)
@@ -36,13 +35,7 @@ const ClaimButton: FC<ClaimButtonProps> = ({
         disabled={prize.amount.isZero() || !!claimOngoing.get(prizeIndex)}
       >
         <div>
-          {!!claimOngoing.get(prizeIndex) ? (
-            <>
-              <div>Processing...</div>
-            </>
-          ) : (
-            <>Claim</>
-          )}
+          {!!claimOngoing.get(prizeIndex) ? <LoadingIcon /> : <>Claim</>}
         </div>
       </Button>
     </div>

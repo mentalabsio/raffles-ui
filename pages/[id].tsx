@@ -20,6 +20,43 @@ import { expand } from "lib/randomnessTools"
 import ClaimButton from "@/components/ClaimButton"
 import { claimPrize } from "lib/actions/claimPrize"
 import { sleep } from "lib/utils"
+import confetti from "canvas-confetti"
+
+const makeConfetti = () => {
+  const duration = 5 * 1000
+  const animationEnd = Date.now() + duration
+  const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 }
+
+  function randomInRange(min: number, max: number) {
+    return Math.random() * (max - min) + min
+  }
+
+  let intervalId: ReturnType<typeof setInterval>
+  intervalId = setInterval(() => {
+    const timeLeft = animationEnd - Date.now()
+
+    if (timeLeft <= 0) {
+      return clearInterval(intervalId)
+    }
+
+    var particleCount = 50 * (timeLeft / duration)
+    // since particles fall down, start a bit higher than random
+    confetti(
+      Object.assign({}, defaults, {
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+      })
+    )
+    confetti(
+      Object.assign({}, defaults, {
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+      })
+    )
+  }, 250)
+
+  return intervalId
+}
 
 export default function Home() {
   const { publicKey } = useWallet()
@@ -37,9 +74,6 @@ export default function Home() {
     () => raffles && raffles.get(query.id.toString()),
     [raffles, query]
   )
-
-  const prize = currentRaffle?.prizes[0]
-  const imageUrl = prize?.meta.imageUri
 
   const MAX_TITLE_LENGTH = 20
 
@@ -85,6 +119,12 @@ export default function Home() {
     )
   }, [entrant, winningTickets])
 
+  useEffect(() => {
+    if (entrantWinningTickets.length === 0) return
+    const confettiTimerId = makeConfetti()
+    return () => clearInterval(confettiTimerId)
+  }, [entrantWinningTickets.length])
+
   const onClaimPrize = useCallback(
     async (prizeIndex: number, ticketIndex: number) => {
       try {
@@ -106,6 +146,11 @@ export default function Home() {
   const winnersRevealed = useMemo(
     () => !!currentRaffle?.randomness,
     [currentRaffle]
+  )
+
+  const userHasParticipated = useMemo(
+    () => (entrant?.tickets.length || 0) > 0,
+    [entrant]
   )
 
   return (
@@ -142,7 +187,6 @@ export default function Home() {
               <Flex
                 sx={{
                   flexDirection: "column",
-                  border: "1px solid",
                   borderColor: "primary",
                   borderRadius: ".4rem",
                   padding: "1.6rem",
@@ -170,12 +214,53 @@ export default function Home() {
                   {currentRaffle.prizes.length > 1 && "s"}
                 </span>
 
-                <img
-                  sx={{
-                    maxWidth: "8rem",
-                  }}
-                  src={imageUrl}
-                />
+                {publicKey && !userHasParticipated ? (
+                  <Text>
+                    Uh oh! It looks like you did not participate in this raffle!
+                  </Text>
+                ) : null}
+
+                {publicKey && entrantWinningTickets.length === 0 ? (
+                  <>
+                    <Text variant="h3">Oh no! No prize.</Text>
+                    <Text variant="body1">Better luck next time!</Text>
+                  </>
+                ) : null}
+
+                {publicKey && entrantWinningTickets.length > 0 ? (
+                  <Text variant="h3">
+                    Hurray, you won! Claim your prizes below:
+                  </Text>
+                ) : null}
+
+                {currentRaffle.prizes.map((prize, prizeIndex) => {
+                  const ticketIndex = winningTickets[prizeIndex]
+                  const isWon = entrantWinningTickets.some(
+                    (entrantWinningTicket) =>
+                      entrantWinningTicket.ticketIndex === ticketIndex
+                  )
+
+                  const imageUrl = prize?.meta.imageUri
+
+                  return (
+                    <>
+                      <img
+                        sx={{
+                          maxWidth: "8rem",
+                        }}
+                        src={imageUrl}
+                      />
+                      {isWon && (
+                        <ClaimButton
+                          claimPrize={onClaimPrize}
+                          prize={prize}
+                          prizeIndex={prizeIndex}
+                          ticketIndex={ticketIndex}
+                        />
+                      )}
+                    </>
+                  )
+                })}
 
                 <Text
                   sx={{
@@ -237,28 +322,11 @@ export default function Home() {
                 />
               )}
               {/** CLAIM */}
-              {currentRaffle.prizes.map((prize, prizeIndex) => {
-                const ticketIndex = winningTickets[prizeIndex]
-                const isWon = entrantWinningTickets.some(
-                  (entrantWinningTicket) =>
-                    entrantWinningTicket.ticketIndex === ticketIndex
-                )
-
-                return (
-                  <>
-                    {isWon && (
-                      <div>
-                        <ClaimButton
-                          claimPrize={onClaimPrize}
-                          prize={prize}
-                          prizeIndex={prizeIndex}
-                          ticketIndex={ticketIndex}
-                        />
-                      </div>
-                    )}
-                  </>
-                )
-              })}
+              {!publicKey ? (
+                <Text>
+                  Connect your wallet to check if you have won any prizes!
+                </Text>
+              ) : null}
             </>
           ) : (
             <LoadingIcon />

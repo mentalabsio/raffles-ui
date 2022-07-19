@@ -17,6 +17,7 @@
     "@solana/wallet-adapter-react": "^0.15.4",
     "@solana/wallet-adapter-react-ui": "^0.9.6",
     "@solana/wallet-adapter-wallets": "^0.15.5",
+    "canvas-confetti": "^1.5.1",
     "mathjs": "^10.6.4",
     "next": "12.1.4",
     "next-ga": "^2.3.4",
