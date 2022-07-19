@@ -103,6 +103,11 @@ export default function Home() {
     [draffleClient, currentRaffle, updateRaffleById]
   )
 
+  const winnersRevealed = useMemo(
+    () => !!currentRaffle?.randomness,
+    [currentRaffle]
+  )
+
   return (
     <>
       <Head>
@@ -134,99 +139,95 @@ export default function Home() {
         >
           {currentRaffle ? (
             <>
-              <Link href={currentRaffle.publicKey.toString()}>
-                <a
+              <Flex
+                sx={{
+                  flexDirection: "column",
+                  border: "1px solid",
+                  borderColor: "primary",
+                  borderRadius: ".4rem",
+                  padding: "1.6rem",
+                  alignItems: "center",
+                  gap: "1.6rem",
+                }}
+              >
+                <Heading variant="heading3">
+                  {currentRaffle.metadata.name.length > MAX_TITLE_LENGTH ? (
+                    <>
+                      {currentRaffle.metadata.name.slice(
+                        0,
+                        MAX_TITLE_LENGTH - 4
+                      )}{" "}
+                      ...
+                    </>
+                  ) : (
+                    currentRaffle.publicKey.toString().slice(0, 9)
+                  )}
+                  ...
+                </Heading>
+
+                <span>
+                  {currentRaffle.prizes.length} prize
+                  {currentRaffle.prizes.length > 1 && "s"}
+                </span>
+
+                <img
                   sx={{
-                    transform: "scale(1)",
-                    backgroundColor: "background",
-                    ":hover": {
-                      transform: "scale(1.01)",
-                    },
+                    maxWidth: "8rem",
                   }}
-                  title="Raffle"
+                  src={imageUrl}
+                />
+
+                <Text
+                  sx={{
+                    display: "flex",
+                    gap: ".8rem",
+                    alignItems: "center",
+                  }}
                 >
-                  <Flex
+                  <ClockIcon />
+
+                  {!ended ? (
+                    <Countdown date={currentRaffle.endTimestamp} />
+                  ) : (
+                    "Ended"
+                  )}
+                </Text>
+                <Flex
+                  sx={{
+                    gap: "3.2rem",
+                  }}
+                >
+                  <Text
                     sx={{
-                      flexDirection: "column",
-                      border: "1px solid",
-                      borderColor: "primary",
-                      borderRadius: ".4rem",
-                      padding: "1.6rem",
+                      display: "flex",
+                      gap: ".8rem",
                       alignItems: "center",
-                      gap: "1.6rem",
                     }}
                   >
-                    <span>
-                      {currentRaffle.prizes.length} prize
-                      {currentRaffle.prizes.length > 1 && "s"}
-                    </span>
-                    {new Date() > currentRaffle.endTimestamp && (
-                      <span>Ended</span>
-                    )}
-                    <img
-                      sx={{
-                        maxWidth: "8rem",
-                      }}
-                      src={imageUrl}
-                    />
-                    <Heading variant="heading3">
-                      {currentRaffle.metadata.name.length > MAX_TITLE_LENGTH ? (
-                        <>
-                          {currentRaffle.metadata.name.slice(
-                            0,
-                            MAX_TITLE_LENGTH - 4
-                          )}{" "}
-                          ...
-                        </>
-                      ) : (
-                        currentRaffle.publicKey.toString().slice(0, 9)
-                      )}
-                      ...
-                    </Heading>
-                    <Text
-                      sx={{
-                        display: "flex",
-                        gap: ".8rem",
-                        alignItems: "center",
-                      }}
-                    >
-                      <ClockIcon />
+                    <TicketIcon />
+                    {currentRaffle.totalTickets} sold
+                  </Text>
 
-                      <Countdown date={currentRaffle.endTimestamp} />
-                    </Text>
-                    <Flex
-                      sx={{
-                        gap: "3.2rem",
-                      }}
-                    >
-                      <Text
-                        sx={{
-                          display: "flex",
-                          gap: ".8rem",
-                          alignItems: "center",
-                        }}
-                      >
-                        <TicketIcon />
-                        {currentRaffle.totalTickets} sold
-                      </Text>
-
-                      <Flex
-                        sx={{
-                          gap: ".8rem",
-                          alignItems: "center",
-                        }}
-                      >
-                        <CoinIcon />
-                        {getDisplayAmount(
-                          currentRaffle.proceeds.ticketPrice,
-                          currentRaffle.proceeds.mint
-                        )}{" "}
-                        ${currentRaffle.proceeds.mint.symbol} ea
-                      </Flex>
-                    </Flex>
+                  <Flex
+                    sx={{
+                      gap: ".8rem",
+                      alignItems: "center",
+                    }}
+                  >
+                    <CoinIcon />
+                    {getDisplayAmount(
+                      currentRaffle.proceeds.ticketPrice,
+                      currentRaffle.proceeds.mint
+                    )}{" "}
+                    ${currentRaffle.proceeds.mint.symbol} ea
                   </Flex>
-                </a>
-              </Link>
+                </Flex>
+                {winnersRevealed ? (
+                  <Text>Winners have been announced!</Text>
+                ) : (
+                  <Text>Winners have NOT been announced yet!</Text>
+                )}
+              </Flex>
               {!ended && (
                 <PurchaseTickets
                   raffle={currentRaffle}

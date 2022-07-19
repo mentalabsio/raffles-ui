@@ -94,6 +94,8 @@ export default function Home() {
 
               const ended = new Date() > raffle.endTimestamp
 
+              const winnersRevealed = raffle.randomness
+
               return (
                 <Flex
                   key={raffle.publicKey.toString()}
@@ -125,17 +127,6 @@ export default function Home() {
                           gap: "1.6rem",
                         }}
                       >
-                        <span>
-                          {raffle.prizes.length} prize
-                          {raffle.prizes.length > 1 && "s"}
-                        </span>
-                        {new Date() > raffle.endTimestamp && <span>Ended</span>}
-                        <img
-                          sx={{
-                            maxWidth: "8rem",
-                          }}
-                          src={imageUrl}
-                        />
                         <Heading variant="heading3">
                           {raffle.metadata.name.length > MAX_TITLE_LENGTH ? (
                             <>
@@ -150,6 +141,19 @@ export default function Home() {
                           )}
                           ...
                         </Heading>
+
+                        <span>
+                          {raffle.prizes.length} prize
+                          {raffle.prizes.length > 1 && "s"}
+                        </span>
+
+                        <img
+                          sx={{
+                            maxWidth: "8rem",
+                          }}
+                          src={imageUrl}
+                        />
+
                         <Text
                           sx={{
                             display: "flex",
@@ -159,7 +163,11 @@ export default function Home() {
                         >
                           <ClockIcon />
 
-                          <Countdown date={raffle.endTimestamp} />
+                          {!ended ? (
+                            <Countdown date={raffle.endTimestamp} />
+                          ) : (
+                            "Ended"
+                          )}
                         </Text>
                         <Flex
                           sx={{
@@ -191,6 +199,12 @@ export default function Home() {
                             ${raffle.proceeds.mint.symbol} ea
                           </Flex>
                         </Flex>
+
+                        {winnersRevealed ? (
+                          <Text>Winners have been announced!</Text>
+                        ) : (
+                          <Text>Winners have NOT been announced yet!</Text>
+                        )}
                       </Flex>
                     </a>
                   </Link>
