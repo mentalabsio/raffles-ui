@@ -96,6 +96,7 @@ export default function Home() {
 
               return (
                 <Flex
+                  key={raffle.publicKey.toString()}
                   sx={{
                     flexDirection: "column",
                     alignItems: "center",
