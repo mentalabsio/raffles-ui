@@ -59,15 +59,15 @@ export default function Home() {
   // Each winning ticket index for each prize
   const winningTickets = useMemo(() => {
     if (
-      !currentRaffle.randomness ||
-      !currentRaffle.entrants ||
-      currentRaffle.entrants.size === 0
+      !currentRaffle?.randomness ||
+      !currentRaffle?.entrants ||
+      currentRaffle?.entrants.size === 0
     )
       return []
-    const secret = currentRaffle.randomness
-    return currentRaffle.prizes.map((_, prizeIndex) => {
+    const secret = currentRaffle?.randomness
+    return currentRaffle?.prizes.map((_, prizeIndex) => {
       const rand = expand(secret, prizeIndex)
-      return rand % currentRaffle.totalTickets
+      return rand % currentRaffle?.totalTickets
     })
   }, [currentRaffle])
 
