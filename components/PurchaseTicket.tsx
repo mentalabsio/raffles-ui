@@ -22,11 +22,11 @@ import {
   getBuyerATABalance,
   getWalletLamports,
 } from "../lib/accounts"
-import { tokenInfoMap, wrappedSOL } from "../config/tokenRegistry"
+import { wrappedSOL } from "../config/tokenRegistry"
 import { useProgramApis } from "../hooks/useProgramApis"
-import { DispenserRegistryRaw } from "../providers/ProgramApisProvider"
 import { PublicKey } from "@solana/web3.js"
 import { Button, Flex, Input, Select, Text } from "@theme-ui/components"
+import { LoadingIcon } from "./icons/LoadingIcon"
 
 const MAX_TICKET_AMOUNT = 3000
 
@@ -53,11 +53,6 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
 
   const [purchaseOngoing, setPurchaseOngoing] = useState(false)
   const [walletLamports, setWalletLamports] = useState<number>()
-  // const [ticketPrice, setTicketPrice] = useState<PaymentOption>({
-  //   mint: raffle.proceeds.mint,
-  //   price: raffle.proceeds.ticketPrice,
-  //   price: raffle.proceeds.ticketPrice,
-  // });
 
   const nativePaymentOption = useMemo(
     () => ({
@@ -68,66 +63,13 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
     [raffle]
   )
 
-  const [paymentOption, setPaymentOption] =
-    useState<PaymentOption>(nativePaymentOption)
+  const paymentOption = nativePaymentOption
 
   const [buyerATABalance, setBuyerATABalance] = useState<AccountBalance>({
     mint: raffle.proceeds.mint.publicKey,
     amount: undefined,
   })
   const [ticketAmount, setTicketAmount] = useState<number>(1)
-  const [dispensers, setDispensers] = useState<
-    { account: DispenserRegistryRaw; publicKey: PublicKey }[]
-  >([])
-
-  const paymentOptions = useMemo(
-    () =>
-      (raffle.metadata.alternatePurchaseMints || []).reduce(
-        (acc, mintAddress) => {
-          if (!tokenInfoMap.has(mintAddress.toString())) {
-            console.log(
-              `Mint ${mintAddress.toString()} not found in token registry`
-            )
-            return acc
-          }
-
-          const dispenser = dispensers.find(
-            (d) =>
-              d.account.mintTokenOut.toString() ===
-                raffle.proceeds.mint.publicKey.toString() &&
-              d.account.mintTokenIn.toString() === mintAddress.toString()
-          )
-          if (!dispenser) {
-            return acc
-          }
-
-          const tokenInfo = tokenInfoMap.get(mintAddress.toString())!
-          acc.set(mintAddress.toString(), {
-            mint: {
-              name: tokenInfo.name,
-              publicKey: mintAddress,
-              logoUrl: tokenInfo.logoURI,
-              symbol: tokenInfo.symbol,
-              decimals: tokenInfo.decimals,
-            },
-            dispenserPriceIn: dispenser.account.rateTokenIn,
-            dispenserPriceOut: dispenser.account.rateTokenOut,
-          })
-          return acc
-        },
-        new Map<string, PaymentOption>([
-          [
-            raffle.proceeds.mint.publicKey.toString(),
-            {
-              mint: raffle.proceeds.mint,
-              dispenserPriceIn: new u64(1),
-              dispenserPriceOut: new u64(1),
-            },
-          ],
-        ])
-      ),
-    [raffle, dispensers]
-  )
 
   const getBasketPrice = useCallback(
     (ticketAmount: number) =>
@@ -140,29 +82,14 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
   )
 
   useEffect(() => {
-    dispenserClient.account.registry.all().then(setDispensers)
-  }, [dispenserClient, setDispensers])
-
-  useEffect(() => {
-    if (!draffleClient.provider.wallet?.publicKey) return
-    let timerId: ReturnType<typeof setInterval>
-
     const updateLamports = async () => {
       const newWalletLamports = await getWalletLamports(draffleClient.provider)
       setWalletLamports(newWalletLamports)
-      if (
-        isLamportsEnough(walletLamports) &&
-        !(paymentOption.mint.publicKey.toBase58() === wrappedSOL)
-      ) {
-        clearInterval(timerId)
-      }
     }
 
-    updateLamports()
-    timerId = setInterval(() => {
+    if (draffleClient.provider.wallet?.publicKey) {
       updateLamports()
-    }, 5000)
-    return () => clearInterval(timerId)
+    }
   }, [
     walletLamports,
     draffleClient.provider,
@@ -171,7 +98,6 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
   ])
 
   useEffect(() => {
-    if (!draffleClient.provider.wallet.publicKey) return
     async function updateBuyerATABalance() {
       setBuyerATABalance({
         mint: paymentOption.mint.publicKey,
@@ -181,11 +107,10 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
         ),
       })
     }
-    const timerId = setInterval(() => {
+
+    if (draffleClient.provider.wallet.publicKey) {
       updateBuyerATABalance()
-    }, 5000)
-    updateBuyerATABalance()
-    return () => clearInterval(timerId)
+    }
   }, [
     draffleClient.provider,
     draffleClient.provider.wallet,
@@ -280,13 +205,6 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
     setTicketAmount,
     updateRaffle,
   ])
-
-  const onSelectPurchaseMint = (
-    event: ChangeEvent<{
-      name?: string | undefined
-      value: unknown
-    }>
-  ) => setPaymentOption(paymentOptions.get(event.target.value as string)!)
 
   return (
     <Flex
@@ -407,7 +325,7 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
           }
         >
           {purchaseOngoing ? (
-            "Processing..."
+            <LoadingIcon />
           ) : (
             <>Buy {!lamportsEnough && "(Insufficient SOL)"}</>
           )}
