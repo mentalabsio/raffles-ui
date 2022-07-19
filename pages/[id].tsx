@@ -214,19 +214,6 @@ export default function Home() {
                   {currentRaffle.prizes.length > 1 && "s"}
                 </span>
 
-                {publicKey && !userHasParticipated ? (
-                  <Text>
-                    Uh oh! It looks like you did not participate in this raffle!
-                  </Text>
-                ) : null}
-
-                {publicKey && entrantWinningTickets.length === 0 ? (
-                  <>
-                    <Text variant="h3">Oh no! No prize.</Text>
-                    <Text variant="body1">Better luck next time!</Text>
-                  </>
-                ) : null}
-
                 {publicKey && entrantWinningTickets.length > 0 ? (
                   <Text variant="h3">
                     Hurray, you won! Claim your prizes below:
@@ -326,6 +313,21 @@ export default function Home() {
                 <Text>
                   Connect your wallet to check if you have won any prizes!
                 </Text>
+              ) : null}
+
+              {publicKey && !userHasParticipated ? (
+                <Text>
+                  Uh oh! It looks like you did not participate in this raffle!
+                </Text>
+              ) : null}
+
+              {publicKey &&
+              userHasParticipated &&
+              entrantWinningTickets.length === 0 ? (
+                <>
+                  <Text variant="h3">Oh no! No prize.</Text>
+                  <Text variant="body1">Better luck next time!</Text>
+                </>
               ) : null}
             </>
           ) : (
