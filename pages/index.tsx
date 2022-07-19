@@ -95,7 +95,13 @@ export default function Home() {
               const ended = new Date() > raffle.endTimestamp
 
               return (
-                <>
+                <Flex
+                  sx={{
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "1.6rem",
+                  }}
+                >
                   <Link href={raffle.publicKey.toString()}>
                     <a
                       sx={{
@@ -195,7 +201,7 @@ export default function Home() {
                       }
                     />
                   )}
-                </>
+                </Flex>
               )
             })}
         </Flex>

@@ -6,7 +6,7 @@ import { Button, Flex, Heading, Text } from "@theme-ui/components"
 import Header from "@/components/Header/Header"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { useRafflesStore } from "@/hooks/useRafflesStore"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Raffle } from "lib/types"
 import Link from "next/link"
 import { getDisplayAmount } from "lib/accounts"
@@ -15,11 +15,17 @@ import { ClockIcon, CoinIcon, TicketIcon } from "@/components/icons"
 import { PurchaseTickets } from "@/components/PurchaseTicket"
 import { useRouter } from "next/router"
 import { LoadingIcon } from "@/components/icons/LoadingIcon"
+import { useProgramApis } from "@/hooks/useProgramApis"
+import { expand } from "lib/randomnessTools"
+import ClaimButton from "@/components/ClaimButton"
+import { claimPrize } from "lib/actions/claimPrize"
+import { sleep } from "lib/utils"
 
 export default function Home() {
   const { publicKey } = useWallet()
   const { raffles, fetchAllRaffles, fetching, updateRaffleById } =
     useRafflesStore()
+  const { draffleClient } = useProgramApis()
 
   const { query } = useRouter()
 
@@ -40,6 +46,63 @@ export default function Home() {
   const ended = new Date() > currentRaffle?.endTimestamp
 
   console.log(currentRaffle)
+
+  /** CLAIM */
+  const entrant = useMemo(() => {
+    if (!draffleClient.provider.wallet.publicKey) return
+
+    return currentRaffle?.entrants.get(
+      draffleClient.provider.wallet.publicKey.toString()
+    )
+  }, [currentRaffle, draffleClient.provider.wallet.publicKey]) // "Unnecessary" dependency required due to React not picking up change in publicKey subfield
+
+  // Each winning ticket index for each prize
+  const winningTickets = useMemo(() => {
+    if (
+      !currentRaffle.randomness ||
+      !currentRaffle.entrants ||
+      currentRaffle.entrants.size === 0
+    )
+      return []
+    const secret = currentRaffle.randomness
+    return currentRaffle.prizes.map((_, prizeIndex) => {
+      const rand = expand(secret, prizeIndex)
+      return rand % currentRaffle.totalTickets
+    })
+  }, [currentRaffle])
+
+  const entrantWinningTickets = useMemo(() => {
+    if (!entrant || !winningTickets) return []
+    return winningTickets.reduce<{ prizeIndex: number; ticketIndex: number }[]>(
+      (acc, ticketIndex, prizeIndex) => {
+        if (entrant?.tickets.includes(ticketIndex)) {
+          return [...acc, { prizeIndex, ticketIndex }]
+        } else {
+          return acc
+        }
+      },
+      []
+    )
+  }, [entrant, winningTickets])
+
+  const onClaimPrize = useCallback(
+    async (prizeIndex: number, ticketIndex: number) => {
+      try {
+        await claimPrize(draffleClient, currentRaffle, prizeIndex, ticketIndex)
+        await sleep(500)
+        updateRaffleById(currentRaffle.publicKey.toString())
+        // toast.success('Prize claimed, check your wallet!');
+      } catch (error: any) {
+        if (error.msg) {
+          // toast.error(`Transaction failed: ${error.msg}`);
+        } else {
+          // toast.error('Unexpected error');
+        }
+      }
+    },
+    [draffleClient, currentRaffle, updateRaffleById]
+  )
+
   return (
     <>
       <Head>
@@ -172,6 +235,29 @@ export default function Home() {
                   }
                 />
               )}
+              {/** CLAIM */}
+              {currentRaffle.prizes.map((prize, prizeIndex) => {
+                const ticketIndex = winningTickets[prizeIndex]
+                const isWon = entrantWinningTickets.some(
+                  (entrantWinningTicket) =>
+                    entrantWinningTicket.ticketIndex === ticketIndex
+                )
+
+                return (
+                  <>
+                    {isWon && (
+                      <div>
+                        <ClaimButton
+                          claimPrize={onClaimPrize}
+                          prize={prize}
+                          prizeIndex={prizeIndex}
+                          ticketIndex={ticketIndex}
+                        />
+                      </div>
+                    )}
+                  </>
+                )
+              })}
             </>
           ) : (
             <LoadingIcon />

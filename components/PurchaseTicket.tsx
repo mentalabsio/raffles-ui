@@ -223,7 +223,7 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
             alignItems: "center",
             border: "1px solid",
             borderColor: "primary",
-            padding: ".4rem 1.6rem",
+            padding: "0 1.6rem",
             borderRadius: ".4rem",
             gap: ".8rem",
           }}
@@ -322,11 +322,7 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
             purchaseOngoing
           }
         >
-          {purchaseOngoing ? (
-            <LoadingIcon />
-          ) : (
-            <>Buy {!lamportsEnough && "(Insufficient SOL)"}</>
-          )}
+          {purchaseOngoing ? <LoadingIcon /> : <>Buy</>}
         </Button>
       </Flex>
       {/* <img
