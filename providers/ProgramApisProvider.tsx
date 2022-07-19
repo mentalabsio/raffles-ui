@@ -5,12 +5,11 @@ import { customProviderFactory } from "../lib/anchorUtils"
 
 import { Draffle, IDL as DraffleIdl } from "../lib/idl/draffle"
 import { Dispenser, IDL as DispenserIdl } from "../lib/idl/dispenser"
-import { DISPENSER_PROGRAM_ID, DRAFFLE_PROGRAM_ID } from "../config/programIds"
+import { DRAFFLE_PROGRAM_ID } from "../config/programIds"
 import { PublicKey } from "@solana/web3.js"
 
 export const ProgramApisContext = createContext<{
   draffleClient: DraffleProgram
-  dispenserClient: DispenserProgram
 }>({} as any)
 
 export type RaffleDataRaw = IdlAccounts<Draffle>["raffle"]
@@ -46,17 +45,8 @@ const ProgramApisProvider = ({ children }) => {
     return { draffleClient }
   }, [customProvider])
 
-  const { dispenserClient } = useMemo(() => {
-    const dispenserClient = new Program<Dispenser>(
-      DispenserIdl,
-      DISPENSER_PROGRAM_ID,
-      customProvider
-    ) as unknown as DispenserProgram
-    return { dispenserClient }
-  }, [customProvider])
-
   return (
-    <ProgramApisContext.Provider value={{ draffleClient, dispenserClient }}>
+    <ProgramApisContext.Provider value={{ draffleClient }}>
       {children}
     </ProgramApisContext.Provider>
   )

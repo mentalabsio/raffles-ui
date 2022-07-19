@@ -49,7 +49,7 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
   raffle,
   updateRaffle,
 }) => {
-  const { draffleClient, dispenserClient } = useProgramApis()
+  const { draffleClient } = useProgramApis()
 
   const [purchaseOngoing, setPurchaseOngoing] = useState(false)
   const [walletLamports, setWalletLamports] = useState<number>()
@@ -177,7 +177,6 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
       const buyerATAExists = buyerATABalance.amount !== undefined
       await buyTickets(
         draffleClient,
-        dispenserClient,
         raffle,
         ticketAmount,
         paymentOption,
@@ -197,7 +196,6 @@ export const PurchaseTickets: FC<PurchaseTicketsProps> = ({
     setPurchaseOngoing(false)
   }, [
     draffleClient,
-    dispenserClient,
     raffle,
     ticketAmount,
     paymentOption,

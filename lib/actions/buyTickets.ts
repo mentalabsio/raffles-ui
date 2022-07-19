@@ -11,13 +11,8 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js"
 
-import { VAULT_TOKEN_IN, VAULT_TOKEN_OUT } from "../../config/accounts"
-import { DISPENSER_REGISTRY_ADDRESS } from "../../config/programIds"
 import { wrappedSOL } from "../../config/tokenRegistry"
-import {
-  DispenserProgram,
-  DraffleProgram,
-} from "../../providers/ProgramApisProvider"
+import { DraffleProgram } from "../../providers/ProgramApisProvider"
 import { createOwnAssociatedTokenAccountInstruction } from "../accounts"
 import { PaymentOption, Raffle } from "../types"
 
@@ -35,7 +30,6 @@ export const calculateBasketPrice = (
 
 export const buyTickets = async (
   draffleClient: DraffleProgram,
-  dispenserClient: DispenserProgram,
   raffle: Raffle,
   ticketAmount: number,
   paymentOption: PaymentOption,
@@ -79,55 +73,6 @@ export const buyTickets = async (
       // @ts-ignore
       Token.createSyncNativeInstruction(TOKEN_PROGRAM_ID, buyerTokenAccount)
     )
-  }
-
-  // Get raffle proceeds token from dispenser if needed
-  if (
-    paymentOption.mint.publicKey.toString() !==
-    raffle.proceeds.mint.publicKey.toString()
-  ) {
-    const basketPrice = calculateBasketPrice(
-      raffle.proceeds.ticketPrice,
-      ticketAmount,
-      paymentOption
-    )
-
-    console.log(
-      `Swapping ${basketPrice.toString()} ${
-        paymentOption.mint.symbol
-      } for ${raffle.proceeds.ticketPrice.muln(ticketAmount).toString()} ${
-        raffle.proceeds.mint.symbol
-      }`
-    )
-
-    const buyerIntermediaryTokenAccount = await Token.getAssociatedTokenAddress(
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-      TOKEN_PROGRAM_ID,
-      raffle.proceeds.mint.publicKey,
-      draffleClient.provider.wallet.publicKey
-    )
-
-    // Safe amount requested, because only multiplied.
-    // Together with program-side logic, only consequence of potentially non-integer
-    // associated tokenIn amount is under-charging the user by remainder amount
-    instructions.push(
-      dispenserClient.instruction.swap(
-        raffle.proceeds.ticketPrice.muln(ticketAmount),
-        {
-          accounts: {
-            registry: DISPENSER_REGISTRY_ADDRESS,
-            swapper: dispenserClient.provider.wallet.publicKey,
-            vaultTokenIn: VAULT_TOKEN_IN,
-            vaultTokenOut: VAULT_TOKEN_OUT,
-            buyerTokenInAccount: buyerTokenAccount,
-            buyerTokenOutAccount: buyerIntermediaryTokenAccount,
-            tokenProgram: TOKEN_PROGRAM_ID,
-          },
-        }
-      )
-    )
-
-    finalBuyerAccount = buyerIntermediaryTokenAccount
   }
 
   instructions.push(
